@@ -357,6 +357,25 @@ class TestCsvdiff(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_raise_error_when_xlsxwriter_not_found(self):
+        # self.assertRaises(SomeCoolException, mymod.myfunc)
+        self.fail('Finish test raise error when XlsxWriter not found')
+
+    def test_export_xlsx_added_records(self):
+        # Import XlsxWriter
+        self.fail('Finish test export to XLSX added records')
+
+    def test_export_xlsx_removed_records(self):
+        # Import XlsxWriter
+        self.fail('Finish test export to XLSX removed records')
+
+    def test_export_xlsx_changed_records(self):
+        # Import XlsxWriter
+        self.fail('Finish test export to XLSX changed records')
+
+    def test_export_xlsx_no_outupt_file_raise_error(self):
+        self.fail('Finish test export to XLSX raise errror when no output file defined')
+
 
 @contextmanager
 def tmp_csv_files(*args):

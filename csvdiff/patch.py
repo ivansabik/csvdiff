@@ -8,10 +8,12 @@
 The the patch format.
 """
 
-import sys
-import json
+import collections
 import copy
 import itertools
+import json
+import operator
+import sys
 
 import jsonschema
 
@@ -187,13 +189,84 @@ def load(istream, strict=True):
     return diff
 
 
-def save(diff, stream=sys.stdout, compact=False):
+def save(diff, stream=sys.stdout, compact=False, format='json'):
     "Serialize a patch object."
     flags = {'sort_keys': True}
     if not compact:
         flags['indent'] = 2
 
-    json.dump(diff, stream, **flags)
+    if format == 'json':
+        json.dump(diff, stream, **flags)
+    else:
+        _save_xlsx(diff, stream)
+
+
+def _save_xlsx(diff, stream):
+    "Serialize a patch object to XLSX."
+    try:
+        import xlsxwriter
+    except ImportError:
+        error.abort('XlsxWriter not found but it is is required, try installing first.')
+
+    workbook = xlsxwriter.Workbook(stream)
+    if diff['added']:
+        worksheet = workbook.add_worksheet('Added')
+        row, col = 0, 0
+        _write_dict_list(diff['added'], worksheet)
+    if diff['removed']:
+        worksheet = workbook.add_worksheet('Removed')
+        _write_dict_list(diff['removed'], worksheet)
+    if diff['changed']:
+        worksheet = workbook.add_worksheet('Changed')
+        _write_changed_records(diff['changed'], worksheet)
+
+    workbook.close()
+
+
+def _write_dict_list(diff_records, worksheet):
+    "Writes a list of dictionaries to a XlsxWriter Worksheet."
+    row, col = 0, 0
+    for key in diff_records[0].keys():
+        worksheet.write(row, col, key)
+        col += 1
+    for diff_record in diff_records:
+        row += 1
+        col = 0
+        for key, value in diff_record.items():
+            worksheet.write(row, col, value)
+            col += 1
+
+
+def _write_changed_records(diff_records, worksheet):
+    "Writes changed fields."
+    # Get dictionary with column key/number pair
+    # and a normalized dicttionary with records
+    columns = collections.OrderedDict()
+    columns['key'] = 0
+    col_number = 1
+    records = []
+    for diff_record in diff_records:
+        record = {'key': ','.join(diff_record['key'])}
+        for key, value in diff_record['fields'].items():
+            try:
+                record[key + '.from'] = value['from']
+                record[key + '.to'] = value['to']
+                columns[key + '.from']
+            except KeyError:
+                columns[key + '.from'] = col_number
+                columns[key + '.to'] = col_number + 1
+                col_number += 2
+        records.append(record)
+    # Write records based on dictionaries built
+    row, col = 0, 0
+    for key in columns.keys():
+        worksheet.write(row, col, key)
+        col += 1
+    for diff_record in records:
+        row += 1
+        for key, value in diff_record.items():
+            worksheet.write(row, columns[key], value)
+            col += 1
 
 
 def create(from_records, to_records, index_columns):

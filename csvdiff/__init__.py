@@ -126,8 +126,10 @@ class CSVType(click.ParamType):
               help="Don't output anything, just use exit codes")
 @click.option('--sep', default=',',
               help='Separator to use between fields [default: comma]')
+@click.option('--format', default='json',
+              help='Format used to serialize patch (json or xlsx). [default: json]')
 def csvdiff_cmd(index_columns, from_csv, to_csv, style=None, output=None,
-                sep=',', quiet=False):
+                sep=',', quiet=False, format='json'):
     """
     Compare two csv files to see what rows differ between them. The files
     are each expected to have a header row, and for each row to be uniquely
@@ -137,6 +139,9 @@ def csvdiff_cmd(index_columns, from_csv, to_csv, style=None, output=None,
                else io.StringIO() if quiet
                else sys.stdout)
 
+    if '.xlsx' not in ostream.name.lower():
+        error.abort('An ouput file with .xlsx extension must be specified for this format.')
+
     try:
         if style == 'summary':
             _diff_and_summarize(from_csv, to_csv, index_columns, ostream,
@@ -144,7 +149,7 @@ def csvdiff_cmd(index_columns, from_csv, to_csv, style=None, output=None,
         else:
             compact = (style == 'compact')
             _diff_files_to_stream(from_csv, to_csv, index_columns, ostream,
-                                  compact=compact, sep=sep)
+                                  compact=compact, sep=sep, format=format)
 
     except records.InvalidKeyError as e:
         error.abort(e.args[0])
@@ -154,9 +159,9 @@ def csvdiff_cmd(index_columns, from_csv, to_csv, style=None, output=None,
 
 
 def _diff_files_to_stream(from_csv, to_csv, index_columns, ostream,
-                          compact=False, sep=','):
+                          compact=False, sep=',', format='json'):
     diff = diff_files(from_csv, to_csv, index_columns, sep=sep)
-    patch.save(diff, ostream, compact=compact)
+    patch.save(diff, ostream, compact=compact, format=format)
     exit_code = (EXIT_SAME
                  if patch.is_empty(diff)
                  else EXIT_DIFFERENT)

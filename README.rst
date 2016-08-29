@@ -8,9 +8,6 @@ csvdiff
 .. image:: https://travis-ci.org/larsyencken/csvdiff.png?branch=master
         :target: https://travis-ci.org/larsyencken/csvdiff
 
-.. image:: https://pypip.in/d/csvdiff/badge.png
-        :target: https://crate.io/packages/csvdiff
-
 Overview
 --------
 
@@ -126,6 +123,13 @@ We can reapply our changes with the ``csvpatch`` command::
     8,henry,9
 
 This can be useful if you're using csvdiff to transform data that's outside your control. In this case, you maintain the patch file and simply reapply it when the upstream data provider gives you a fresh file.
+
+We can also export to XLSX format with:
+
+``csvdiff --format=xlsx --output=/tmp/tmp.xlsx \
+id tests/examples/a.csv tests/examples/b.csv``
+
+This will create a new spreadsheet with 3 sheets for added, removed and changed records respectively. This requires to manually install XlsxWriter before (something like ``pip install xlsxwriter``).
 
 For more usage options, run ``csvdiff --help`` or ``csvpatch --help``.
 
