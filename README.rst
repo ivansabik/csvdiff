@@ -126,8 +126,7 @@ This can be useful if you're using csvdiff to transform data that's outside your
 
 We can also export to XLSX format with:
 
-``csvdiff --format=xlsx --output=/tmp/tmp.xlsx \
-id tests/examples/a.csv tests/examples/b.csv``
+``csvdiff --format=xlsx --output=/tmp/tmp.xlsx id tests/examples/a.csv tests/examples/b.csv``
 
 This will create a new spreadsheet with 3 sheets for added, removed and changed records respectively. This requires to manually install XlsxWriter before (something like ``pip install xlsxwriter``).
 
